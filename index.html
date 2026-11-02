@@ -75,6 +75,14 @@
   .step b{display:block;font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);line-height:1}
   .step p{font-size:14px;color:var(--muted);margin-top:6px}
 
+  .extra{margin-top:18px}
+  .extra pre{font-size:14px}
+  .sec-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;margin-bottom:12px}
+  .settings{width:100%;border-collapse:collapse;font-size:14px}
+  .settings th,.settings td{text-align:left;padding:9px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+  .settings th{color:var(--maroon);font-weight:600;width:44%}
+  .tips{margin:14px 0 0 18px;font-size:14px;color:var(--muted)}
+  .tips li{margin-bottom:6px}
   footer{text-align:center;margin-top:36px;color:var(--muted);font-size:14px}
   footer .made{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:var(--ink)}
   footer a{color:var(--maroon);font-weight:600;text-decoration:none;border-bottom:1px solid var(--gold-soft)}
@@ -119,9 +127,35 @@
   </section>
 
   <section class="how">
-    <div class="step"><b>01</b><p>Pick a style from the dropdown and copy the prompt.</p></div>
-    <div class="step"><b>02</b><p>Upload a clear, front-facing couple photo to your AI image tool.</p></div>
-    <div class="step"><b>03</b><p>Paste the prompt. If faces drift, reply: “Keep the scene, match the faces to my photo.”</p></div>
+    <div class="step"><b>01</b><p>Pick a style and copy the prompt. The Identity Lock and things-to-avoid list are already included.</p></div>
+    <div class="step"><b>02</b><p>Upload one clear photo of each person (or a clear couple photo) to your AI image tool.</p></div>
+    <div class="step"><b>03</b><p>Paste the prompt. Check the faces at full size, and regenerate if either person looks different.</p></div>
+  </section>
+
+  <section class="panel extra">
+    <div class="result-head">
+      <h2>Negative prompt<small>For tools with a separate “negative prompt” box</small></h2>
+      <button class="copy" id="copy-neg" type="button">Copy negative prompt</button>
+    </div>
+    <pre id="neg-text"></pre>
+  </section>
+
+  <section class="panel extra">
+    <h2 class="sec-title">Best settings</h2>
+    <table class="settings">
+      <tr><th>Reference photos</th><td>One clear photo of each person</td></tr>
+      <tr><th>Face visibility</th><td>Front-facing or 3/4 angle</td></tr>
+      <tr><th>Output ratio</th><td>4:5 for portraits</td></tr>
+      <tr><th>Image quality</th><td>Highest available</td></tr>
+      <tr><th>Style</th><td>Photorealistic editorial</td></tr>
+      <tr><th>Face reference</th><td>Highest available priority</td></tr>
+      <tr><th>Variations</th><td>Generate 2–4 per look</td></tr>
+    </table>
+    <ul class="tips">
+      <li>Use well-lit, unfiltered photos. Heavily filtered selfies confuse the face match.</li>
+      <li>If your tool accepts several reference images, add more angles of each person.</li>
+      <li>Generate one look at a time and never trade face accuracy for a more dramatic outfit or pose.</li>
+    </ul>
   </section>
 
   <footer>
@@ -137,7 +171,29 @@
 </div>
 
 <script>
-const LOCK = "Using the uploaded photo, keep both people's faces, facial features, skin tone, and body proportions exactly the same — do not alter their identity.\n\n";
+const LOCK = `IDENTITY LOCK (essential)
+Use the uploaded reference photographs as the ONLY identity source for both people. Recreate the exact same two individuals and preserve their facial identity with the highest possible accuracy.
+
+Do not change:
+- Face shape, jawline, cheekbones or facial proportions
+- Eyes, eyebrows, nose, lips, teeth or smile
+- Skin tone, natural skin texture or facial characteristics
+- Hairline, age, distinctive facial features or identity
+- Body proportions and natural physical appearance
+
+Both people must remain immediately recognisable as the exact individuals in the uploaded photographs.
+
+You ARE allowed to change their clothing, hairstyle, makeup, accessories, body position, pose, camera angle, lighting and background. Hairstyles and makeup must complement their existing features, never reshape or beautify their faces into different people.
+
+Anatomy: natural human anatomy, realistic hands with five fingers, properly formed eyes, realistic teeth, natural expressions and physically believable poses.
+
+Photographic quality: ultra-realistic professional photography, premium fashion editorial, authentic skin texture, realistic fabric details, natural proportions, sharp facial focus.
+
+Priority: identity accuracy is more important than artistic styling. If a creative effect compromises facial identity, remove the effect.
+
+SCENE
+`;
+const NEG = "Different identity, face swapping, altered facial features, artificial beauty filters, plastic skin, excessive skin smoothing, distorted eyes, crossed eyes, asymmetrical face, strange teeth, unnatural smile, deformed hands, extra fingers, missing fingers, fused fingers, extra limbs, duplicate people, distorted body proportions, unnatural neck, warped jewellery, floating accessories, malformed clothing, unrealistic fabric, blurry faces, face motion blur, cartoon appearance, CGI appearance, overprocessed skin, excessive HDR, unnatural expressions, uncanny valley, inconsistent facial identity.";
 const STYLES = [
  {id:"royal-haveli", name:"Royal Haveli Heritage", tag:"Regal · Rajasthani haveli · warm window light",
   p:"Create a regal Diwali couple portrait inside a carved sandstone Rajasthani haveli. The woman wears a deep maroon Banarasi silk lehenga with gold zari work, heavy polki jewellery, a matha patti, and a classic bun with a white gajra. The man wears an ivory silk sherwani with a maroon velvet shawl draped over one shoulder.\n\nPose: they sit on a carved jharokha window ledge, her hand resting gently on his shoulder, both gazing slightly off-frame with calm, royal expressions.\n\nLighting: warm golden sunlight streaming through arched windows, brass diyas glowing on the ledge, soft bounce light on the faces.\n\nShot on a full-frame camera, 85mm lens, f/2, shallow depth of field, rich warm tones, editorial luxury wedding photography, ultra-realistic, 4:5 vertical."},
@@ -229,7 +285,7 @@ function show(id, scroll){
   tEl.innerHTML = '';
   tEl.append(`${i+1}. ${s.name}`);
   const sm=document.createElement('small'); sm.textContent=s.tag; tEl.appendChild(sm);
-  pEl.textContent = LOCK + s.p;
+  pEl.textContent = LOCK + s.p + "\n\nAVOID\n" + NEG;
   ph.style.display='none'; result.classList.add('show');
   copyBtn.textContent='Copy prompt'; copyBtn.classList.remove('done');
   history.replaceState(null,'','#'+id);
@@ -237,16 +293,19 @@ function show(id, scroll){
 }
 sel.onchange = e => show(e.target.value,true);
 
-copyBtn.onclick = async () => {
-  const text = pEl.textContent;
+async function copyText(text, btn, label){
   try { await navigator.clipboard.writeText(text); }
   catch(e){
     const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta);
     ta.select(); document.execCommand('copy'); ta.remove();
   }
-  copyBtn.textContent='Copied!'; copyBtn.classList.add('done');
-  setTimeout(()=>{copyBtn.textContent='Copy prompt';copyBtn.classList.remove('done')},2000);
-};
+  btn.textContent='Copied!'; btn.classList.add('done');
+  setTimeout(()=>{btn.textContent=label;btn.classList.remove('done')},2000);
+}
+copyBtn.onclick = () => copyText(pEl.textContent, copyBtn, 'Copy prompt');
+const negBtn = document.getElementById('copy-neg');
+document.getElementById('neg-text').textContent = NEG;
+negBtn.onclick = () => copyText(NEG, negBtn, 'Copy negative prompt');
 
 if(location.hash) show(location.hash.slice(1),false);
 </script>
